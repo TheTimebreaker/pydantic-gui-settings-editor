@@ -1,6 +1,7 @@
-import example_model
+from typing import Any
+
+import example_model  # type: ignore
 import pytest
-from pydantic import BaseModel
 from PySide6.QtWidgets import QApplication
 
 
@@ -18,6 +19,6 @@ def qt_app() -> QApplication:
         pytest.param("ignore", id="extra-ignore"),
     ),
 )
-def model_cls(request: pytest.FixtureRequest) -> type[BaseModel]:
+def model_cls(request: pytest.FixtureRequest) -> Any:
     extra_mode = request.param
     return example_model.model_with_extra_config(extra_mode)

@@ -1,6 +1,6 @@
 from typing import Any  # noqa: N999
 
-import example_model
+import example_model  # type: ignore
 
 from pydantic_gui_settings_editor.config import SettingsManagerConfig
 from pydantic_gui_settings_editor.gui import SettingsForm
