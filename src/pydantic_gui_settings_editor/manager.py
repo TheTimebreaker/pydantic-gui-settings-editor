@@ -50,7 +50,7 @@ class SettingsManager[ModelT: BaseModel]:
 
         self.model: ModelT
         self.saved_model: ModelT
-        self.used_disk_file: bool
+        self.used_disk_file: bool = False
         self._form: SettingsForm[ModelT]
         self.app: QApplication
         self.window: QMainWindow
@@ -135,7 +135,9 @@ class SettingsManager[ModelT: BaseModel]:
         self.saved_model = self.model.model_copy(deep=True)
 
     def _init_qt(self) -> None:
-        self.app = QApplication([])
+        self.app = QApplication.instance() or QApplication([])  # type: ignore
+        if not isinstance(self.app, QApplication):
+            raise ValueError
         self.window = QMainWindow()
 
         self.window.setWindowTitle(self.additional_config.title)
@@ -154,7 +156,7 @@ class SettingsManager[ModelT: BaseModel]:
         elif theme is Theme.DARK:
             self.app.styleHints().setColorScheme(Qt.ColorScheme.Dark)
 
-    def edit_gui(self) -> None:
+    def edit_gui(self, *, auto_confirm_gui: bool = False) -> None:
         """Opens the graphical settings editor.
 
         The GUI can edit a copy of the current settings. Changes are only written to disk when saved."""
@@ -191,8 +193,9 @@ class SettingsManager[ModelT: BaseModel]:
 
         self.window.setCentralWidget(central_widget)
         self.window.resize(800, 600)
-        self.window.show()
-        self.app.exec()
+        if not auto_confirm_gui:
+            self.window.show()
+            self.app.exec()
 
         self.model = self._form.get_model()
 
