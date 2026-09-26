@@ -102,7 +102,12 @@ class EnumSetWidget(QPushButton):
         self.menu: PersistentMenu = PersistentMenu(self)  # type: ignore
 
         for option in sorted(enum_type, key=self.enum_sort_key):
-            action = self.menu.addAction(getattr(option, "title", option.name))
+            title = getattr(option, "title", None)  # Devs SHOULD overwrite the title property of Enums, but they also should not HAVE to do that
+            if callable(title):
+                title = title()
+            if title is None:
+                title = option.name
+            action = self.menu.addAction(title)
             action.setCheckable(True)
             action.setChecked(option in self._value)
             action.toggled.connect(
@@ -286,8 +291,13 @@ def create_widget(field: FieldInfo, value: Any) -> QWidget:
             raise TypeError(f"Expected an enum annotation, got {enum_type!r}")
 
         for option in enum_type:
+            title = getattr(option, "title", None)
+            if callable(title):  # Devs SHOULD overwrite the title property of Enums, but they also should not HAVE to do that
+                title = title()
+            if title is None:
+                title = option.name
             widget.addItem(
-                getattr(option, "title", option.name),
+                title,
                 userData=option,
             )
 
