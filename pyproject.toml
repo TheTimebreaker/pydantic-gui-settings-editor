@@ -1,7 +1,7 @@
 [project]
 name = "pydantic-gui-settings-editor"
 version = "0.1.0"
-description = "A PySide6 / Qt based GUI editor for Pydantic settings models"
+description = "A PySide6 / Qt based GUI editor for Pydantic(v2) settings models"
 readme = "README.md"
 license = { file = "UNLICENSE" }
 authors = [
@@ -16,6 +16,7 @@ dependencies = [
 dev = [
     "black>=26.5.1",
     "mypy>=2.3.1",
+    "pytest>=9.1.1",
     "ruff>=0.16.9",
 ]
 
@@ -34,7 +35,6 @@ exclude = [
   "build",
   "dist",
   "__pycache__",
-  "test*.*",
 ]
 
 [tool.ruff.lint]
@@ -83,7 +83,7 @@ disallow_any_generics = true
 check_untyped_defs = true
 warn_unused_ignores = true
 warn_return_any = true
-exclude = ["test*.*", ".venv*"]
+exclude = [".venv*"]
 
 
 [[tool.mypy.overrides]]
