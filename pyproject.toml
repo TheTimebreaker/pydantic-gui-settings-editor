@@ -1,0 +1,91 @@
+[project]
+name = "pydantic-gui-settings-editor"
+version = "0.1.0"
+description = "A PySide6 / Qt based GUI editor for Pydantic settings models"
+readme = "README.md"
+license = { file = "UNLICENSE" }
+authors = [
+    { name = "TheTimebreaker", email = "github@thetimebreaker.mozmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13.5",
+    "pyside6>=6.11.2",
+]
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "mypy>=2.3.1",
+    "ruff>=0.16.9",
+]
+
+
+[build-system]
+requires = ["uv_build>=0.12.4,<0.13.0"]
+build-backend = "uv_build"
+
+
+[tool.ruff]
+line-length = 150
+target-version = "py312"
+
+exclude = [
+  ".venv*",
+  "build",
+  "dist",
+  "__pycache__",
+  "test*.*",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle (errors)
+  "F",   # pyflakes
+  "I",   # isort (import sorting)
+  "B",   # flake8-bugbear (extra checks for likely bugs)
+  "UP",  # pyupgrade (modern Python syntax suggestions)
+  "N",   # pep8-naming
+  "ERA", # Mark commented out code
+  "ANN", # Some type annotations
+  "ASYNC", # Async checks
+  "FIX",
+  "ISC", # implicit str concat
+  "ICN", # import conventions
+  "G", #Logging format
+  "INP", #implicit-no-pep420
+  "PIE",
+  "Q", #flake8-quotes
+  "TD", #TODOs,
+  "ARG", #Unused args
+  "RUF", #Ruff specifics
+]
+extend-select = ["N815", "N816"]
+
+ignore = [
+  "ANN401", #allow type:Any
+  "TD003", #Missing issue link for TODO
+]
+
+[tool.pylint."MASTER"]
+disable = ["all"]
+
+
+[tool.black]
+line-length = 150
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_any_generics = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_return_any = true
+exclude = ["test*.*", ".venv*"]
+
+
+[[tool.mypy.overrides]]
+module = []
+ignore_missing_imports = true
