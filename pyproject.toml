@@ -1,6 +1,6 @@
 [project]
 name = "pydantic-gui-settings-editor"
-version = "0.2.0"
+version = "0.2.1"
 description = "A PySide6 / Qt based GUI editor for Pydantic(v2) settings models"
 readme = "README.md"
 license = { file = "UNLICENSE" }
