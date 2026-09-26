@@ -1,7 +1,7 @@
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Theme(StrEnum):
@@ -52,3 +52,6 @@ class SettingsManagerConfig(BaseModel):
 
     icon_path: Path | None = None
     """Path to the image file used for the settings window icon and the taskbar icon."""
+
+    float_precision: int = Field(default=15, ge=0, le=15)
+    """Precision of floating point numbers. If a float has more digits than this value, it will come back rounded."""

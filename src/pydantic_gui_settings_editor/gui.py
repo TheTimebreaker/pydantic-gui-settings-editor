@@ -4,7 +4,7 @@ from typing import Any, cast, get_args, get_origin
 from annotated_types import Ge, Gt, Le, Lt, MaxLen, MultipleOf
 from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSignalBlocker, Qt
 from PySide6.QtGui import QAction, QMouseEvent, QWheelEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
@@ -108,6 +108,7 @@ class EnumSetWidget(QPushButton):
             if title is None:
                 title = option.name
             action = self.menu.addAction(title)
+            action.setData(option)
             action.setCheckable(True)
             action.setChecked(option in self._value)
             action.toggled.connect(
@@ -156,7 +157,8 @@ class EnumSetWidget(QPushButton):
 
         for action in self.menu.actions():
             option = action.data()
-            action.setChecked(option in self._value)
+            with QSignalBlocker(action):
+                action.setChecked(option in self._value)
 
         self.setText(self._button_text())
 
@@ -193,7 +195,7 @@ def classify_field(field: FieldInfo) -> FieldKind:
     return FieldKind.UNKNOWN
 
 
-def create_widget(field: FieldInfo, value: Any) -> QWidget:
+def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget:
     def as_int(value: object) -> int:
         return int(cast(int | float, value))
 
@@ -244,6 +246,7 @@ def create_widget(field: FieldInfo, value: Any) -> QWidget:
 
     elif kind is FieldKind.FLOAT:
         widget = NoWheelDoubleSpinBox()
+        widget.setDecimals(float_precision)
 
         min_value = None
         max_value = None
@@ -443,7 +446,7 @@ class SettingsForm[ModelT: BaseModel](QWidget):
                 layout.addRow(group)
 
             else:
-                widget = create_widget(field, value)
+                widget = create_widget(field, value, float_precision=self.additional_config.float_precision)
                 label = ClickableLabel(field.title or name, target=widget)
 
                 if description:
