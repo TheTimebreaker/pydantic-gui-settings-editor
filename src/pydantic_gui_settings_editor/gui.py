@@ -291,7 +291,10 @@ def create_widget(field: FieldInfo, value: Any) -> QWidget:
                 userData=option,
             )
 
-        widget.setCurrentIndex(widget.findData(value))
+        index = widget.findData(value)
+        if index == -1:
+            raise ValueError(f"Enum value {value!r} was not found in {enum_type!r}")
+        widget.setCurrentIndex(index)
 
         return widget
 
