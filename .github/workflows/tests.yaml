@@ -11,6 +11,9 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
+        resolution: ["highest", "lowest"]
+
+    name: Python ${{ matrix.python-version }} / ${{ matrix.resolution }} dependencies
 
     runs-on: ubuntu-latest
 
@@ -26,7 +29,12 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
+        if: matrix.resolution == 'highest'
         run: uv sync
+
+      - name: Install minimum dependencies
+        if: matrix.resolution == 'lowest'
+        run: uv sync --resolution lowest-direct
 
       - name: Install system dependencies # Will crash Qt otherwise
         run: |
