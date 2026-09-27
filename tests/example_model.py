@@ -1,7 +1,10 @@
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
+
+from pydantic_gui_settings_editor.types import DirectoryPath, FilePath
 
 
 class TestEnum(StrEnum):
@@ -25,6 +28,13 @@ class TestSettings(BaseModel):
     option: TestEnum = Field(TestEnum.THIRD)
     options: set[TestEnum] = Field(set(TestEnum))
     nested: NestedSettings = Field(default_factory=NestedSettings)
+
+    path: Path = Field(default=Path(".").resolve())
+    filepath: FilePath = Field(default=Path("./README.md").resolve())
+    dirpath: DirectoryPath = Field(default=Path(".").resolve())
+    paths: set[Path] = Field(default={Path(".").resolve()})
+    filepaths: set[FilePath] = Field(default={Path("./README.md").resolve()})
+    dirpaths: set[DirectoryPath] = Field(default={Path(".").resolve()})
 
 
 def model_with_extra_config(extra: Literal["allow", "forbid", "ignore"]) -> type[TestSettings]:
