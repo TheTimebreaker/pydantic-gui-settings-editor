@@ -29,12 +29,28 @@ class TestSettings(BaseModel):
     options: set[TestEnum] = Field(set(TestEnum))
     nested: NestedSettings = Field(default_factory=NestedSettings)
 
-    path: Path = Field(default=Path(".").resolve())
-    filepath: FilePath = Field(default=Path("./README.md").resolve())
-    dirpath: DirectoryPath = Field(default=Path(".").resolve())
-    paths: set[Path] = Field(default={Path(".").resolve()})
-    filepaths: set[FilePath] = Field(default={Path("./README.md").resolve()})
-    dirpaths: set[DirectoryPath] = Field(default={Path(".").resolve()})
+    path: Path = Field(default=Path("."))
+    filepath: FilePath = Field(default=Path("./README.md"))
+    dirpath: DirectoryPath = Field(default=Path("./temp"))
+
+    paths: set[Path] = Field(
+        default={
+            Path("./README.md"),
+            Path("./HAHAHAHA"),
+        }
+    )
+    filepaths: set[FilePath] = Field(
+        default={
+            Path("./README.md"),
+            Path("./test.txt"),
+        }
+    )
+    dirpaths: set[DirectoryPath] = Field(
+        default={
+            Path("./temp"),
+            Path("./cheats"),
+        }
+    )
 
 
 def model_with_extra_config(extra: Literal["allow", "forbid", "ignore"]) -> type[TestSettings]:
