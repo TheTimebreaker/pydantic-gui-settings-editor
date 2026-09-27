@@ -681,6 +681,10 @@ class SettingsForm[ModelT: BaseModel](QWidget):
                 widget.setCurrentIndex(widget.findData(value))
             elif isinstance(widget, EnumSetWidget):
                 widget.setValue(value)
+            elif isinstance(widget, PathSingletonWidget):
+                widget.add_path(value)
+            elif isinstance(widget, PathListWidget):
+                widget.set_path_to(value)
             else:
                 raise TypeError(f"Unsupported widget: {type(widget).__name__}")
 
