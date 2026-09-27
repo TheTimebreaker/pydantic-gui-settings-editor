@@ -1,4 +1,5 @@
-from typing import Any  # noqa: N999
+from pathlib import Path  # noqa: N999
+from typing import Any
 
 import example_model  # type: ignore
 
@@ -14,6 +15,8 @@ def test_model_round_trip(model_cls: type[Any]) -> None:
         name="hellooooo",
         option=example_model.TestEnum.SECOND,
         options=set([example_model.TestEnum.FIRST, example_model.TestEnum.THIRD]),
+        path=Path(".").resolve(),
+        paths={Path(".").resolve()},
         nested=example_model.NestedSettings(
             enabled=False,
             name="child",
@@ -32,6 +35,8 @@ def test_model_round_trip2(model_cls: type[Any]) -> None:
         name="  balloon  ",
         option=example_model.TestEnum.THIRD,
         options=set([example_model.TestEnum.SECOND, example_model.TestEnum.FIRST]),
+        path=Path("..").resolve(),
+        paths={Path("..").resolve()},
         nested=example_model.NestedSettings(
             enabled=True,
             name="  hahahaha  ",
@@ -85,6 +90,10 @@ def test_set_model(model_cls: type[Any]) -> None:
             enabled=False,
             name="changed",
         ),
+        filepath=Path("something something.yaml"),
+        filepaths={
+            Path("something something.yaml"),
+        },
     )
     form = SettingsForm(original)
     form.set_model(replacement)
@@ -104,6 +113,10 @@ def test_set_model2(model_cls: type[Any]) -> None:
             enabled=False,
             name=" c h a n g e d ",
         ),
+        dirpath=Path("something something"),
+        dirpaths={
+            Path("something something"),
+        },
     )
     form = SettingsForm(original)
     form.set_model(replacement)
