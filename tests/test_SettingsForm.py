@@ -13,6 +13,7 @@ def test_model_round_trip(model_cls: type[Any]) -> None:
         count=42,
         ratio=0.75,
         name="hellooooo",
+        names={"hellooooo", "Natsuki Daniel"},
         option=example_model.TestEnum.SECOND,
         options=set([example_model.TestEnum.FIRST, example_model.TestEnum.THIRD]),
         path=Path(".").resolve(),
@@ -33,6 +34,7 @@ def test_model_round_trip2(model_cls: type[Any]) -> None:
         count=69,
         ratio=0.6777777,
         name="  balloon  ",
+        names={"     BA LO OO N  ", "The One Above All???"},
         option=example_model.TestEnum.THIRD,
         options=set([example_model.TestEnum.SECOND, example_model.TestEnum.FIRST]),
         path=Path("..").resolve(),
@@ -83,7 +85,8 @@ def test_set_model(model_cls: type[Any]) -> None:
     replacement = model_cls(
         enabled=False,
         count=99,
-        name="replacement",
+        name=" replacement",
+        names={"Vendetta", "Natsuki Daniel"},
         option=example_model.TestEnum.THIRD,
         options={example_model.TestEnum.SECOND},
         nested=example_model.NestedSettings(
@@ -106,7 +109,8 @@ def test_set_model2(model_cls: type[Any]) -> None:
     replacement = model_cls(
         enabled=False,
         ratio=0.6666666667777,
-        name="replacement",
+        name=" . raplacement  ",
+        names={"  HE1lO ! --: ", "Natsuki Daniel"},
         option=example_model.TestEnum.THIRD,
         options={example_model.TestEnum.THIRD, example_model.TestEnum.SECOND, example_model.TestEnum.FIRST},
         nested=example_model.NestedSettings(

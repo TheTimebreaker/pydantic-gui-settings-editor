@@ -12,8 +12,12 @@ try:
     manager.load()
     manager.edit_gui()
 
+    print(manager.model.model_dump_json(indent=4))
+
 finally:
     print("=" * 20)
     print("When finished with developing, don't forget to wipe your devving config file!")
     print("It can be found here:")
     print(config_path)
+
+    print("=" * 20)

@@ -25,6 +25,7 @@ class TestSettings(BaseModel):
     count: int = Field(10, ge=0, le=100)
     ratio: float = Field(0.5, ge=0.0, le=100.0)
     name: str = Field("test", min_length=2, max_length=20)
+    names: set[str] = Field({"test1", "test2"})
     option: TestEnum = Field(TestEnum.THIRD)
     options: set[TestEnum] = Field(set(TestEnum))
     nested: NestedSettings = Field(default_factory=NestedSettings)
