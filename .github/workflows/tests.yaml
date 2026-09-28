@@ -45,3 +45,17 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: uv run pytest
+
+
+  tests-passed:
+    name: All tests passed
+    if: ${{ !cancelled() }}
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: |
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
+            echo "One or more test matrix jobs failed."
+            exit 1
+          fi
