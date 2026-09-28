@@ -314,9 +314,9 @@ class PathListWidget(PathWidgetParent):
         self._update_list_height()
         self.paths_changed.emit()
 
-    def get_path(self) -> set[Path] | None:
+    def get_path(self) -> set[Path]:
         result = {Path(self.path_edit.item(i).text()) for i in range(self.path_edit.count())}
-        return result or None
+        return result
 
     def remove_path(self) -> None:
         for item in self.path_edit.selectedItems():
@@ -394,9 +394,9 @@ class StringListWidget(QWidget):
             self.list_widget.takeItem(row)
         self._update_list_height()
 
-    def get_values(self) -> set[str] | None:
+    def get_values(self) -> set[str]:
         result = {self.list_widget.item(i).text() for i in range(self.list_widget.count())}
-        return result or None
+        return result
 
 
 def classify_field(field: FieldInfo) -> FieldKind:
