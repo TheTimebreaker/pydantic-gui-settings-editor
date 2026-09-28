@@ -38,15 +38,20 @@ class FieldKind(StrEnum):
     BOOL = "bool"
     INT = "int"
     FLOAT = "float"
+
     STR = "str"
+    SET_STR = "set_str"
+
     ENUM = "enum"
     SET_ENUM = "set_enum"
+
     PATH = "path"
-    FILEPATH = "filepath"
-    DIRECTORYPATH = "directorypath"
     SET_PATH = "set_path"
+    FILEPATH = "filepath"
     SET_FILEPATH = "set_filepath"
+    DIRECTORYPATH = "directorypath"
     SET_DIRECTORYPATH = "set_directorypath"
+
     UNKNOWN = "unknown"
 
 
@@ -320,6 +325,80 @@ class PathListWidget(PathWidgetParent):
         self.paths_changed.emit()
 
 
+class StringListWidget(QWidget):
+    def __init__(self, parent: Any = None) -> None:
+        super().__init__(parent)
+
+        self.list_widget = QListWidget()
+        self.list_widget.setSelectionMode(QListWidget.SelectionMode.ExtendedSelection)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+        self.list_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+        self.list_widget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        self.input = QLineEdit()
+        self.input.setPlaceholderText("Enter a string...")
+
+        self.add_button = QPushButton("Add")
+        self.remove_button = QPushButton("Remove")
+        self.add_button.clicked.connect(self.add_item)
+        self.input.returnPressed.connect(self.add_item)
+        self.remove_button.clicked.connect(self.remove_selected)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.input)
+        button_layout.addWidget(self.add_button)
+        button_layout.addWidget(self.remove_button)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.list_widget)
+        layout.addLayout(button_layout)
+
+        self._update_list_height()
+
+    def _update_list_height(self) -> None:
+        count = self.list_widget.count()
+        if count == 0:
+            height = 0
+        else:
+            height = sum(self.list_widget.sizeHintForRow(i) for i in range(count))
+            height += 2 * self.list_widget.frameWidth()
+        self.list_widget.setFixedHeight(height)
+
+    def add_item(self) -> None:
+        text = self.input.text()
+        if not text:
+            return
+        self.list_widget.addItem(text)
+        self.input.clear()
+        self.input.setFocus()
+        self._update_list_height()
+
+    def set_items_to(self, values: str | set[str] | list[str] | tuple[str]) -> None:
+        self.input.clear()
+        self.list_widget.clear()
+        if isinstance(values, str):
+            values = [values]
+        for value in values:
+            self.list_widget.addItem(value)
+        self._update_list_height()
+
+    def remove_selected(self) -> None:
+        for item in self.list_widget.selectedItems():
+            row = self.list_widget.row(item)
+            self.list_widget.takeItem(row)
+        self._update_list_height()
+
+    def get_values(self) -> set[str] | None:
+        result = {self.list_widget.item(i).text() for i in range(self.list_widget.count())}
+        return result or None
+
+
 def classify_field(field: FieldInfo) -> FieldKind:
     annotation = field.annotation
 
@@ -359,6 +438,8 @@ def classify_field(field: FieldInfo) -> FieldKind:
             return FieldKind.SET_ENUM
         if element_type is Path:
             return FieldKind.SET_PATH
+        if element_type is str:
+            return FieldKind.SET_STR
 
         element_origin = get_origin(element_type)
         element_args = get_args(element_type)[1:]
@@ -381,7 +462,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
     kind = classify_field(field)
     widget: QWidget
     min_value: int | float | None
-    max_value: int | float | None
+    max_length: int | float | None
     step: int | float | None
 
     if kind is FieldKind.BOOL:
@@ -408,7 +489,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         widget = NoWheelSpinBox()
 
         min_value = None
-        max_value = None
+        max_length = None
         step = None
         for item in field.metadata:
             if isinstance(item, Ge):
@@ -416,15 +497,15 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
             elif isinstance(item, Gt):
                 min_value = as_int(item.gt) + 1
             elif isinstance(item, Le):
-                max_value = as_int(item.le)
+                max_length = as_int(item.le)
             elif isinstance(item, Lt):
-                max_value = as_int(item.lt) - 1
+                max_length = as_int(item.lt) - 1
             elif isinstance(item, MultipleOf):
                 step = as_int(item.multiple_of)
         if min_value is not None:
             widget.setMinimum(min_value)
-        if max_value is not None:
-            widget.setMaximum(max_value)
+        if max_length is not None:
+            widget.setMaximum(max_length)
         if step is not None:
             widget.setSingleStep(step)
 
@@ -436,7 +517,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         widget.setDecimals(float_precision)
 
         min_value = None
-        max_value = None
+        max_length = None
         step = None
         for item in field.metadata:
             if isinstance(item, Ge):
@@ -444,15 +525,15 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
             elif isinstance(item, Gt):
                 min_value = as_float(item.gt) + 1
             elif isinstance(item, Le):
-                max_value = as_float(item.le)
+                max_length = as_float(item.le)
             elif isinstance(item, Lt):
-                max_value = as_float(item.lt) - 1
+                max_length = as_float(item.lt) - 1
             elif isinstance(item, MultipleOf):
                 step = as_float(item.multiple_of)
         if min_value is not None:
             widget.setMinimum(min_value)
-        if max_value is not None:
-            widget.setMaximum(max_value)
+        if max_length is not None:
+            widget.setMaximum(max_length)
         if step is not None:
             widget.setSingleStep(step)
 
@@ -461,15 +542,19 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
 
     elif kind is FieldKind.STR:
         widget = QLineEdit()
-
-        max_value = None
+        max_length = None
         for item in field.metadata:
             if isinstance(item, MaxLen):
-                max_value = item.max_length
-        if max_value is not None:
-            widget.setMaxLength(max_value)
-
+                max_length = item.max_length
+        if max_length is not None:
+            widget.setMaxLength(max_length)
         widget.setText(value)
+        return widget
+
+    elif kind is FieldKind.SET_STR:
+        max_length = None
+        widget = StringListWidget()
+        widget.set_items_to(value)
         return widget
 
     elif kind is FieldKind.ENUM:
@@ -502,7 +587,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         enum_type = get_args(field.annotation)[0]
         return EnumSetWidget(enum_type, value)
 
-    raise TypeError(f"Don't know how to create a widget for {field.annotation!r}")
+    raise TypeError(f"Don't know how to create a widget for kind {kind} / {field.annotation!r}")
 
 
 def get_widget_value(widget: QWidget) -> object:
@@ -520,6 +605,8 @@ def get_widget_value(widget: QWidget) -> object:
         return widget.value()
     if isinstance(widget, PathSingletonWidget) or isinstance(widget, PathListWidget):
         return widget.get_path()
+    if isinstance(widget, StringListWidget):
+        return widget.get_values()
 
     raise TypeError(f"Unsupported widget: {type(widget).__name__}")
 
@@ -685,6 +772,8 @@ class SettingsForm[ModelT: BaseModel](QWidget):
                 widget.add_path(value)
             elif isinstance(widget, PathListWidget):
                 widget.set_path_to(value)
+            elif isinstance(widget, StringListWidget):
+                widget.set_items_to(value)
             else:
                 raise TypeError(f"Unsupported widget: {type(widget).__name__}")
 
