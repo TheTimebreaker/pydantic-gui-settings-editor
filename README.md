@@ -38,7 +38,7 @@ The following setting types are currently supported:
 
 - `bool`
 - `int` and `float`
-- `str`
+- `str` and `set[str]`
 - `Enum` and `set[Enum]`
 - `pathlib.Path` and `set[pathlib.Path]`
     - a special typehint for `FilePath`s and `DirectoryPath`s has been added to `pydantic_gui_settings_editor.types`, which you can import to specify a path to a file or a file to a path, while just type hinting a field as `Path` will allow any path.
