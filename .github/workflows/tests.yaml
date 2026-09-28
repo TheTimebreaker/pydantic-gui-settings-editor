@@ -30,21 +30,30 @@ jobs:
 
       - name: Install dependencies
         if: matrix.resolution == 'highest'
-        run: uv sync
+        run: uv sync --dev
 
       - name: Install minimum dependencies
         if: matrix.resolution == 'lowest'
-        run: uv sync --resolution lowest-direct
+        run: uv sync --dev --resolution lowest-direct
 
       - name: Install system dependencies # Will crash Qt otherwise
         run: |
           sudo apt-get update
           sudo apt-get install -y libegl1
 
-      - name: Run tests
+      - name: Run pytest
         env:
           QT_QPA_PLATFORM: offscreen
         run: uv run pytest
+
+      - name: Run ruff
+        run: uv run ruff check .
+
+      - name: Run black
+        run: uv run black --check .
+
+      - name: Run mypy
+        run: uv run mypy .
 
 
   tests-passed:
