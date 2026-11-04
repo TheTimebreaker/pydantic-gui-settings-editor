@@ -28,7 +28,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 150
-target-version = "py312"
+target-version = "py315"
 
 exclude = [
   ".venv*",
@@ -72,10 +72,10 @@ disable = ["all"]
 
 [tool.black]
 line-length = 150
-target-version = ["py312"]
+target-version = ["py315"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.15"
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
