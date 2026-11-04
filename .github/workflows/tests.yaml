@@ -10,7 +10,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: ["3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
         resolution: ["highest", "lowest"]
 
     name: Python ${{ matrix.python-version }} / ${{ matrix.resolution }} dependencies
@@ -54,6 +54,9 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy .
+
+      - name: Run jactionlint
+        run: uv run jactionlint
 
 
   tests-passed:
