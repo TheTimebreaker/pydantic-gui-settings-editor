@@ -564,7 +564,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         widget.setFocusPolicy(Qt.FocusPolicy.TabFocus)
 
         enum_type = field.annotation
-        if enum_type is None or not issubclass(enum_type, Enum):
+        if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
             raise TypeError(f"Expected an enum annotation, got {enum_type!r}")
 
         for option in enum_type:
