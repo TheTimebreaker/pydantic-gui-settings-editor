@@ -1,4 +1,4 @@
-__lazy_modules__ = ["pydantic", "PySide6"]
+__lazy_modules__ = ["pydantic", "PySide6.QtGui", "PySide6.QtWidgets"]
 
 import json
 import logging

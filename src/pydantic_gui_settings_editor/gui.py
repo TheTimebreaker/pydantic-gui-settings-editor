@@ -1,4 +1,4 @@
-__lazy_modules__ = ["pydantic", "PySide6"]
+__lazy_modules__ = ["pydantic", "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtTest", "PySide6.QtWidgets"]
 
 from enum import Enum, StrEnum
 from pathlib import Path
