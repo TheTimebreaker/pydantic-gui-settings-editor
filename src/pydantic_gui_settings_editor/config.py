@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pydantic"]
+
 from enum import StrEnum
 from pathlib import Path
 

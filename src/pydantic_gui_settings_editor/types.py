@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pydantic"]
+
 from pathlib import Path
 from typing import Annotated, TypeVar
 

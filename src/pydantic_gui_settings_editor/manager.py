@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pydantic", "PySide6"]
+
 import json
 import logging
 import shutil
@@ -18,7 +20,7 @@ from PySide6.QtWidgets import (
 
 from pydantic_gui_settings_editor.config import SettingsManagerConfig, Theme
 from pydantic_gui_settings_editor.gui import SettingsForm
-from pydantic_gui_settings_editor.types import ModelT  # noqa: F401
+from pydantic_gui_settings_editor.types import ModelT
 
 
 def give_backup_path(path: Path) -> Path:

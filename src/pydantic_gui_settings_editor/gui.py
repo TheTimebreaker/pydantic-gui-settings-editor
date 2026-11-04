@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pydantic", "PySide6"]
+
 from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Annotated, Any, Literal, cast, get_args, get_origin
@@ -30,7 +32,7 @@ from PySide6.QtWidgets import (
 )
 
 from pydantic_gui_settings_editor.config import ConfigCollapeNestedSettings, SettingsManagerConfig
-from pydantic_gui_settings_editor.types import ModelT, _DirectoryPathMarker, _FilePathMarker  # noqa: F401
+from pydantic_gui_settings_editor.types import ModelT, _DirectoryPathMarker, _FilePathMarker
 
 
 class FieldKind(StrEnum):
