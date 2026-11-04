@@ -5,17 +5,23 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: build-and-release
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   release:
     name: Build and release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     permissions:
       contents: write
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -29,8 +35,10 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          DOWNLOAD_DIR: ${{ runner.temp }}/download
         run: |
-          gh release create "${{ github.ref_name }}" \
+          gh release create "$TAG_NAME" \
             dist/* \
-            --title "${{ github.ref_name }}" \
+            --title "$TAG_NAME" \
             --generate-notes

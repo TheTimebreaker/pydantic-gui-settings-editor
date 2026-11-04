@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=26.5.1",
+    "jactionlint>=2.4.0",
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "ruff>=0.16.9",
@@ -28,7 +29,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 150
-target-version = "py312"
+target-version = "py315"
 
 exclude = [
   ".venv*",
@@ -72,10 +73,10 @@ disable = ["all"]
 
 [tool.black]
 line-length = 150
-target-version = ["py312"]
+target-version = ["py315"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.15"
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true

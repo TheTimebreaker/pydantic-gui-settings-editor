@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pydantic", "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtTest", "PySide6.QtWidgets"]
+
 from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Annotated, Any, Literal, cast, get_args, get_origin
@@ -30,7 +32,7 @@ from PySide6.QtWidgets import (
 )
 
 from pydantic_gui_settings_editor.config import ConfigCollapeNestedSettings, SettingsManagerConfig
-from pydantic_gui_settings_editor.types import ModelT, _DirectoryPathMarker, _FilePathMarker  # noqa: F401
+from pydantic_gui_settings_editor.types import ModelT, _DirectoryPathMarker, _FilePathMarker
 
 
 class FieldKind(StrEnum):
@@ -562,7 +564,7 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         widget.setFocusPolicy(Qt.FocusPolicy.TabFocus)
 
         enum_type = field.annotation
-        if enum_type is None or not issubclass(enum_type, Enum):
+        if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
             raise TypeError(f"Expected an enum annotation, got {enum_type!r}")
 
         for option in enum_type:
