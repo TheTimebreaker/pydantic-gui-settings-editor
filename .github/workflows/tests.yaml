@@ -4,7 +4,14 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+      - "test*"
   pull_request:
+
+concurrency:
+  group: lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -14,11 +21,13 @@ jobs:
         resolution: ["highest", "lowest"]
 
     name: Python ${{ matrix.python-version }} / ${{ matrix.resolution }} dependencies
-
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install UV
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -64,6 +73,8 @@ jobs:
     if: ${{ !cancelled() }}
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: {}
 
     steps:
       - run: |
