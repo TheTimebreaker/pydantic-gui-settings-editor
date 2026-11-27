@@ -26,8 +26,6 @@ class NestedSettings(BaseModel):
 class TestSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    pus: list[PerUserSettings] = Field([PerUserSettings(username="test-user-1", user_id=1)])
-
     enabled: bool = Field(True)
     count: int = Field(10, ge=0, le=100)
     ratio: float = Field(0.5, ge=0.0, le=100.0)
@@ -58,6 +56,12 @@ class TestSettings(BaseModel):
             Path("./temp"),
             Path("./cheats"),
         }
+    )
+
+    users: list[PerUserSettings] = Field(
+        default=[
+            PerUserSettings(username="test-user-1", user_id=1),
+        ]
     )
 
 

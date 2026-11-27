@@ -22,6 +22,11 @@ def test_model_round_trip(model_cls: type[Any]) -> None:
             enabled=False,
             name="child",
         ),
+        users=[
+            example_model.PerUserSettings(username="user1", user_id=19),
+            example_model.PerUserSettings(username="user2", user_id=2),
+            example_model.PerUserSettings(username="3user", user_id=42),
+        ],
     )
     form = SettingsForm(original)
     result = form.get_model()
@@ -43,6 +48,11 @@ def test_model_round_trip2(model_cls: type[Any]) -> None:
             enabled=True,
             name="  hahahaha  ",
         ),
+        users=[
+            example_model.PerUserSettings(username="   user1.-.-", user_id=19),
+            example_model.PerUserSettings(username=" u s e r 2 ", user_id=666666),
+            example_model.PerUserSettings(username="3user", user_id=42),
+        ],
     )
     form = SettingsForm(original)
     result = form.get_model()
@@ -97,6 +107,11 @@ def test_set_model(model_cls: type[Any]) -> None:
         filepaths={
             Path("something something.yaml"),
         },
+        users=[
+            example_model.PerUserSettings(username="user1", user_id=19),
+            example_model.PerUserSettings(username="user2", user_id=2),
+            example_model.PerUserSettings(username="3user", user_id=42),
+        ],
     )
     form = SettingsForm(original)
     form.set_model(replacement)
@@ -121,6 +136,11 @@ def test_set_model2(model_cls: type[Any]) -> None:
         dirpaths={
             Path("something something"),
         },
+        users=[
+            example_model.PerUserSettings(username="   user1.-.-", user_id=19),
+            example_model.PerUserSettings(username=" u s e r 2 ", user_id=666666),
+            example_model.PerUserSettings(username="3user", user_id=42),
+        ],
     )
     form = SettingsForm(original)
     form.set_model(replacement)
