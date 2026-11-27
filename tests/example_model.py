@@ -7,6 +7,11 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 from pydantic_gui_settings_editor.types import DirectoryPath, FilePath
 
 
+class PerUserSettings(BaseModel):
+    username: str
+    user_id: int
+
+
 class TestEnum(StrEnum):
     FIRST = "first"
     SECOND = "second"
@@ -20,6 +25,8 @@ class NestedSettings(BaseModel):
 
 class TestSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    pus: list[PerUserSettings] = Field([PerUserSettings(username="test-user-1", user_id=1)])
 
     enabled: bool = Field(True)
     count: int = Field(10, ge=0, le=100)
