@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QListWidget,
+    QListWidgetItem,
     QMenu,
     QMessageBox,
     QPushButton,
@@ -37,6 +38,8 @@ from pydantic_gui_settings_editor.types import ModelT, _DirectoryPathMarker, _Fi
 
 class FieldKind(StrEnum):
     MODEL = "model"
+    LIST_MODEL = "list_model"
+
     BOOL = "bool"
     INT = "int"
     FLOAT = "float"
@@ -451,10 +454,20 @@ def classify_field(field: FieldInfo) -> FieldKind:
             elif any(x is _DirectoryPathMarker for x in element_args):
                 return FieldKind.SET_DIRECTORYPATH
 
+    if origin is list and len(args) == 1:
+        element_type = args[0]
+        if isinstance(element_type, type) and issubclass(element_type, BaseModel):
+            return FieldKind.LIST_MODEL
+
     return FieldKind.UNKNOWN
 
 
-def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget:
+def create_widget(
+    field: FieldInfo,
+    value: Any,
+    float_precision: int,
+    additional_config: SettingsManagerConfig | None = None,
+) -> QWidget:
     def as_int(value: object) -> int:
         return int(cast(int | float, value))
 
@@ -559,6 +572,14 @@ def create_widget(field: FieldInfo, value: Any, float_precision: int) -> QWidget
         widget.set_items_to(value)
         return widget
 
+    elif kind is FieldKind.LIST_MODEL:
+        model_type = get_args(field.annotation)[0]
+        if not isinstance(model_type, type) or not issubclass(model_type, BaseModel):
+            raise TypeError(f"Expected a Pydantic model annotation, got {model_type!r}")
+        widget = ModelListWidget(model_type, additional_config=additional_config)
+        widget.set_items_to(value)
+        return widget
+
     elif kind is FieldKind.ENUM:
         widget = NoWheelComboBox()
         widget.setFocusPolicy(Qt.FocusPolicy.TabFocus)
@@ -608,6 +629,8 @@ def get_widget_value(widget: QWidget) -> object:
     if isinstance(widget, PathSingletonWidget) or isinstance(widget, PathListWidget):
         return widget.get_path()
     if isinstance(widget, StringListWidget):
+        return widget.get_values()
+    if isinstance(widget, ModelListWidget):
         return widget.get_values()
 
     raise TypeError(f"Unsupported widget: {type(widget).__name__}")
@@ -724,7 +747,12 @@ class SettingsForm[ModelT: BaseModel](QWidget):
                 layout.addRow(group)
 
             else:
-                widget = create_widget(field, value, float_precision=self.additional_config.float_precision)
+                widget = create_widget(
+                    field,
+                    value,
+                    float_precision=self.additional_config.float_precision,
+                    additional_config=self.additional_config,
+                )
                 label = ClickableLabel(field.title or name, target=widget)
 
                 if description:
@@ -776,8 +804,131 @@ class SettingsForm[ModelT: BaseModel](QWidget):
                 widget.set_path_to(value)
             elif isinstance(widget, StringListWidget):
                 widget.set_items_to(value)
+            elif isinstance(widget, ModelListWidget):
+                widget.set_items_to(value)
             else:
                 raise TypeError(f"Unsupported widget: {type(widget).__name__}")
 
         for name, form in self.child_forms.items():
             form.set_model(getattr(model, name))
+
+
+def _empty_value_for_field(field: FieldInfo, values: dict[str, Any]) -> Any:
+    if not field.is_required():
+        return field.get_default(call_default_factory=True, validated_data=values)
+
+    kind = classify_field(field)
+    if kind is FieldKind.MODEL:
+        model_type = field.annotation
+        if not isinstance(model_type, type) or not issubclass(model_type, BaseModel):
+            raise TypeError(f"Expected a Pydantic model annotation, got {model_type!r}")
+        return _empty_model_for_form(model_type)
+    if kind is FieldKind.LIST_MODEL:
+        return []
+    if kind in (FieldKind.SET_STR, FieldKind.SET_ENUM, FieldKind.SET_PATH, FieldKind.SET_FILEPATH, FieldKind.SET_DIRECTORYPATH):
+        return set()
+    if kind is FieldKind.BOOL:
+        return False
+    if kind is FieldKind.INT:
+        return 0
+    if kind is FieldKind.FLOAT:
+        return 0.0
+    if kind is FieldKind.STR:
+        return ""
+    if kind in (FieldKind.PATH, FieldKind.FILEPATH, FieldKind.DIRECTORYPATH):
+        return Path()
+    if kind is FieldKind.ENUM:
+        enum_type = field.annotation
+        if not isinstance(enum_type, type) or not issubclass(enum_type, Enum):
+            raise TypeError(f"Expected an enum annotation, got {enum_type!r}")
+        return next(iter(enum_type), None)
+    raise TypeError(f"Don't know how to create an empty value for {field.annotation!r}")
+
+
+def _empty_model_for_form(model_type: type[BaseModel]) -> BaseModel:
+    values: dict[str, Any] = {}
+    for name, field in model_type.model_fields.items():
+        values[name] = _empty_value_for_field(field, values)
+    return model_type.model_construct(**values)
+
+
+class ModelListWidget(QWidget):
+    def __init__(
+        self,
+        model_type: type[BaseModel],
+        additional_config: SettingsManagerConfig | None = None,
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+
+        self.model_type = model_type
+        if additional_config is None:
+            additional_config = SettingsManagerConfig()
+        self.additional_config = additional_config
+        self.forms: list[SettingsForm[Any]] = []
+
+        self.list_widget = QListWidget()
+        self.list_widget.setSelectionMode(QListWidget.SelectionMode.NoSelection)
+        self.list_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.list_widget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        self.add_button = QPushButton("Add")
+        self.add_button.clicked.connect(self.add_item)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.list_widget)
+        layout.addWidget(self.add_button)
+
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._update_list_height()
+
+    def _update_list_height(self) -> None:
+        count = self.list_widget.count()
+        if count == 0:
+            height = 0
+        else:
+            height = sum(self.list_widget.sizeHintForRow(i) for i in range(count))
+            height += 2 * self.list_widget.frameWidth()
+        self.list_widget.setFixedHeight(height)
+
+    def _append_model(self, model: BaseModel) -> None:
+        form = SettingsForm(model, additional_config=self.additional_config)
+        item = QListWidgetItem()
+        entry = QWidget()
+        entry_layout = QHBoxLayout(entry)
+        entry_layout.setContentsMargins(0, 0, 0, 0)
+        entry_layout.addWidget(form, 1)
+
+        remove_button = QPushButton("Remove")
+        remove_button.clicked.connect(lambda _checked=False: self.remove_item(item))
+        entry_layout.addWidget(remove_button)
+
+        item.setSizeHint(entry.sizeHint())
+        self.list_widget.addItem(item)
+        self.list_widget.setItemWidget(item, entry)
+        self.forms.append(form)
+        self._update_list_height()
+
+    def add_item(self) -> None:
+        self._append_model(_empty_model_for_form(self.model_type))
+
+    def set_items_to(self, values: list[BaseModel]) -> None:
+        self.list_widget.clear()
+        self.forms.clear()
+        for value in values:
+            self._append_model(value)
+        self._update_list_height()
+
+    def remove_item(self, item: QListWidgetItem) -> None:
+        row = self.list_widget.row(item)
+        if row < 0:
+            return
+        entry = self.list_widget.itemWidget(item)
+        if entry is not None:
+            entry.deleteLater()
+        self.list_widget.takeItem(row)
+        self.forms.pop(row)
+        self._update_list_height()
+
+    def get_values(self) -> list[BaseModel]:
+        return [form.get_model() for form in self.forms]

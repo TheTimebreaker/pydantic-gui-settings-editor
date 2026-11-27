@@ -7,6 +7,11 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 from pydantic_gui_settings_editor.types import DirectoryPath, FilePath
 
 
+class PerUserSettings(BaseModel):
+    username: str
+    user_id: int = Field(ge=0, le=999999999)
+
+
 class TestEnum(StrEnum):
     FIRST = "first"
     SECOND = "second"
@@ -51,6 +56,12 @@ class TestSettings(BaseModel):
             Path("./temp"),
             Path("./cheats"),
         }
+    )
+
+    users: list[PerUserSettings] = Field(
+        default=[
+            PerUserSettings(username="test-user-1", user_id=1),
+        ]
     )
 
 
