@@ -9,7 +9,7 @@ from pydantic_gui_settings_editor.types import DirectoryPath, FilePath
 
 class PerUserSettings(BaseModel):
     username: str
-    user_id: int
+    user_id: int = Field(ge=0, le=999999999)
 
 
 class TestEnum(StrEnum):
